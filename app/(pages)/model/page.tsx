@@ -6,7 +6,7 @@ import { OrbitControls, useGLTF } from "@react-three/drei"
 import * as THREE from "three"
 
 function Model() {
-  const { scene } = useGLTF("/models/model.glb")
+  const { scene } = useGLTF("/models/Tortuga Poruga.glb")
   const groupRef = useRef<THREE.Group>(undefined)
 
   // Example: rotate continuously
