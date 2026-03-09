@@ -1,5 +1,5 @@
 "use client"
-import { useRef } from "react"
+import { useRef, useEffect } from "react"
 import { useFrame } from "@react-three/fiber"
 import { Canvas } from "@react-three/fiber"
 import { OrbitControls, useGLTF } from "@react-three/drei"
@@ -9,7 +9,17 @@ function Model() {
   const { scene } = useGLTF("/models/Tortuga Poruga.glb")
   const groupRef = useRef<THREE.Group>(undefined)
 
-  // Example: rotate continuously
+  // Slightly brighten model materials
+  useEffect(() => {
+    scene.traverse((child: any) => {
+      if (child.isMesh && child.material) {
+        child.material.color.multiplyScalar(1.2) // brighten a bit
+        child.material.needsUpdate = true
+      }
+    })
+  }, [scene])
+
+  // rotate continuously
   useFrame(() => {
     if (groupRef.current) {
       groupRef.current.rotation.y += 0.007
@@ -27,7 +37,9 @@ export default function ModelViewer() {
   return (
     <div style={{ height: "100vh" }}>
       <Canvas camera={{ position: [0, 0, 5] }}>
-        <ambientLight intensity={1} />
+        <ambientLight intensity={1.5} />
+        <directionalLight position={[5, 5, 5]} intensity={1.5} />
+        <pointLight position={[-5, 5, 5]} intensity={1} />
         <Model />
         <OrbitControls />
       </Canvas>
