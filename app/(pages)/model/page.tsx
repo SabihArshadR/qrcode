@@ -486,7 +486,7 @@ const Page = ({ setShowARView, handleClose, audioUrl }: any) => {
 
     {/* UI Overlay */}
     {!avatarPos && (
-      <div className="fixed bottom-10 left-0 right-0 flex justify-center z-[999]">
+      <div className="fixed bottom-8 left-0 right-0 flex justify-center z-[999]">
         <button
           onClick={placeAvatar}
           className="px-6 py-3 w-[300px] bg-blue-600 text-white rounded-xl shadow-lg pointer-events-auto"
