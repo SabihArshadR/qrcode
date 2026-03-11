@@ -316,7 +316,7 @@ const Avatar = ({ position, isPlaying, deviceOrientation }: any) => {
         >
             <AEntity
                 ref={modelRef}
-                gltf-model="url(/models/Tortuga Poruga.glb)"
+                gltf-model="url(/models/Duc.glb)"
                 animation-mixer={
                     isPlaying
                         ? "clip: *; loop: repeat; timeScale: 1"
