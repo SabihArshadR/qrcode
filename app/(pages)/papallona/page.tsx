@@ -221,7 +221,7 @@ const Page = ({ setShowARView, handleClose, audioUrl }: any) => {
 
         const pos = {
             x: worldPos.x,
-            y: worldPos.y + 0.7,
+            y: worldPos.y + 1,
             z: worldPos.z,
         };
 
