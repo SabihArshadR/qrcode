@@ -466,7 +466,8 @@ const Page = ({ setShowARView, handleClose, audioUrl }: any) => {
       <AEntity light="type: directional; intensity: 1.5" position="0 5 5" />
 
       {/* Standard AR Camera */}
-      <AEntity camera="" />
+      
+      {/* <AEntity camera="" /> */}
 
       {/* If you want the marker to be 'found' in the real world, 
           it shouldn't be a child of the camera. */}
