@@ -299,7 +299,7 @@ const Page = ({ audioUrl = "/sounds/main.mp3" }: any) => {
             sfx.play().catch(() => {});
 
             setStatus("ready");
-            setAvatarPos({ x: 0, y: -0.5, z: -2 });
+            setAvatarPos({ x: 0, y: -0.1, z: -2 });
         } catch (err) {
             alert("Camera access is required for AR.");
             setStatus("idle");
@@ -332,7 +332,7 @@ const Page = ({ audioUrl = "/sounds/main.mp3" }: any) => {
         return (
             <div className="flex h-screen flex-col items-center justify-center bg-black text-white p-6 text-center">
                 <h1 className="text-2xl font-bold mb-4">AR Experience</h1>
-                <p className="mb-8 opacity-80">Click below to enable camera and see the surprise.</p>
+                <p className="mb-8 opacity-80">Click below to enable camera and see the Avatar</p>
                 <button
                     onClick={handleStart}
                     className="px-10 py-4 bg-pink-600 hover:bg-pink-500 rounded-full font-bold transition-all shadow-lg"
