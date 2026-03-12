@@ -179,10 +179,7 @@
 import React, { useEffect, useState, useRef } from "react";
 
 const AScene = (props: any) => React.createElement("a-scene", props);
-const ACamera = (props: any) => React.createElement("a-camera", props);
 const AEntity = (props: any) => React.createElement("a-entity", props);
-const ACircle = (props: any) => React.createElement("a-circle", props);
-const ARing = (props: any) => React.createElement("a-ring", props);
 
 /* ---------------- CONFETTI ---------------- */
 const Confetti = ({ position }: any) => {
@@ -251,8 +248,7 @@ const Avatar = ({ position, isPlaying }: any) => {
 
     useEffect(() => {
         if (!avatarRef.current || !modelRef.current) return;
-
-        // Instant POP scale animation
+        
         avatarRef.current.setAttribute(
             "animation__scale",
             "property: scale; from: 0 0 0; to: 0.7 0.7 0.7; dur: 800; easing: easeOutBack"
@@ -276,29 +272,42 @@ const Avatar = ({ position, isPlaying }: any) => {
 };
 
 /* ---------------- PAGE ---------------- */
-const Page = ({ audioUrl }: any) => {
-    const [permissionGranted, setPermissionGranted] = useState(false);
+const Page = ({ audioUrl = "/sounds/main.mp3" }: any) => {
+    const [status, setStatus] = useState<"idle" | "requesting" | "ready">("idle");
     const [scriptsLoaded, setScriptsLoaded] = useState(false);
     const [avatarPos, setAvatarPos] = useState<any>(null);
     const [isPlayingState, setIsPlayingState] = useState(false);
+    
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
-    // 1. Check Permissions
-    useEffect(() => {
-        (async () => {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                stream.getTracks().forEach((track) => track.stop());
-                setPermissionGranted(true);
-            } catch {
-                setPermissionGranted(false);
+    const handleStart = async () => {
+        setStatus("requesting");
+        try {
+            // Request camera only
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            stream.getTracks().forEach((track) => track.stop());
+            
+            // Audio starts immediately because of this click
+            if (audioUrl) {
+                audioRef.current = new Audio(audioUrl);
+                audioRef.current.play().catch(() => {});
+                setIsPlayingState(true);
             }
-        })();
-    }, []);
 
-    // 2. Load A-Frame Scripts
+            const sfx = new Audio("/sounds/1.mp3");
+            sfx.volume = 0.9;
+            sfx.play().catch(() => {});
+
+            setStatus("ready");
+            setAvatarPos({ x: 0, y: -0.5, z: -2 });
+        } catch (err) {
+            alert("Camera access is required for AR.");
+            setStatus("idle");
+        }
+    };
+
     useEffect(() => {
-        if (!permissionGranted) return;
+        if (status !== "ready") return;
 
         const loadScript = (src: string) =>
             new Promise<void>((resolve) => {
@@ -317,36 +326,22 @@ const Page = ({ audioUrl }: any) => {
         };
 
         loadAll();
-    }, [permissionGranted]);
+    }, [status]);
 
-    // 3. AUTO-PLACE AVATAR when scripts are ready
-    useEffect(() => {
-        if (scriptsLoaded) {
-            // Set position 2 meters in front of the camera
-            const autoPos = { x: 0, y: -0.5, z: -2 };
-            setAvatarPos(autoPos);
-
-            // Attempt Autoplay (Note: Most browsers require a click for audio)
-            const playInitialEffect = () => {
-                const sfx = new Audio("/sounds/1.mp3");
-                sfx.volume = 0.9;
-                sfx.play().catch(() => console.log("Audio autoplay blocked by browser"));
-
-                if (audioUrl) {
-                    audioRef.current = new Audio(audioUrl);
-                    audioRef.current.play().catch(() => { });
-                    setIsPlayingState(true);
-                }
-                window.removeEventListener('click', playInitialEffect);
-            };
-
-            // We add a listener because browsers usually block audio until the first interaction
-            window.addEventListener('click', playInitialEffect);
-        }
-    }, [scriptsLoaded, audioUrl]);
-
-    if (!permissionGranted) return <div className="flex h-screen items-center justify-center">Camera permission required</div>;
-    if (!scriptsLoaded) return <div className="h-screen bg-black" />;
+    if (status !== "ready" || !scriptsLoaded) {
+        return (
+            <div className="flex h-screen flex-col items-center justify-center bg-black text-white p-6 text-center">
+                <h1 className="text-2xl font-bold mb-4">AR Experience</h1>
+                <p className="mb-8 opacity-80">Click below to enable camera and see the surprise.</p>
+                <button
+                    onClick={handleStart}
+                    className="px-10 py-4 bg-pink-600 hover:bg-pink-500 rounded-full font-bold transition-all shadow-lg"
+                >
+                    {status === "requesting" ? "Loading..." : "START EXPERIENCE"}
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full h-screen relative overflow-hidden">
