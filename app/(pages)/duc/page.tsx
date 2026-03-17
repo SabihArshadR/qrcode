@@ -344,25 +344,46 @@ const Page = ({ audioUrl = "/sounds/main.mp3" }: any) => {
     }
 
     return (
-        <div className="w-full h-screen relative overflow-hidden">
-            <AScene
-                embedded
-                vr-mode-ui="enabled: false"
-                arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
-                renderer="antialias: true; alpha: true;"
-            >
-                <AEntity light="type: ambient; intensity: 1.6" />
-                <AEntity light="type: directional; intensity: 1.5" position="0 5 5" />
-                <AEntity camera="" />
+        // <div className="w-full h-screen relative overflow-hidden">
+        //     <AScene
+        //         embedded
+        //         vr-mode-ui="enabled: false"
+        //         arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
+        //         renderer="antialias: true; alpha: true;"
+        //     >
+        //         <AEntity light="type: ambient; intensity: 1.6" />
+        //         <AEntity light="type: directional; intensity: 1.5" position="0 5 5" />
+        //         <AEntity camera="" />
 
-                {avatarPos && (
-                    <>
-                        <Avatar position={avatarPos} isPlaying={isPlayingState} />
-                        <Confetti position={avatarPos} />
-                    </>
-                )}
-            </AScene>
-        </div>
+        //         {avatarPos && (
+        //             <>
+        //                 <Avatar position={avatarPos} isPlaying={isPlayingState} />
+        //                 <Confetti position={avatarPos} />
+        //             </>
+        //         )}
+        //     </AScene>
+        // </div>
+
+         <div className="w-full h-screen relative overflow-hidden">
+        <AScene
+            embedded
+            device-orientation-permission-ui="enabled: false" 
+            vr-mode-ui="enabled: false"
+            arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
+            renderer="antialias: true; alpha: true;"
+        >
+            <AEntity light="type: ambient; intensity: 1.6" />
+            <AEntity light="type: directional; intensity: 1.5" position="0 5 5" />
+            <AEntity camera="active: true" look-controls="enabled: false" />
+
+            {avatarPos && (
+                <>
+                    <Avatar position={avatarPos} isPlaying={isPlayingState} />
+                    <Confetti position={avatarPos} />
+                </>
+            )}
+        </AScene>
+    </div>
     );
 };
 
