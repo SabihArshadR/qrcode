@@ -106,19 +106,20 @@ const Page = ({ audioUrl = "/sounds/main.mp3" }: any) => {
     const sfxRef = useRef<HTMLAudioElement | null>(null);
 
     const handleStart = async () => {
-        // --- STEP 1: INITIAL UNLOCK ---
-        // Create audio and play/pause immediately. 
-        // This "primes" the audio engine so Chrome allows it later.
+        // --- THE FIX: PREPARE BUT DON'T PLAY ---
+        // Create the objects
         const mainAudio = new Audio(audioUrl);
-        mainAudio.volume = 0;
-        mainAudio.loop = true;
-        
         const sfx = new Audio("/sounds/1.mp3");
-        sfx.volume = 0;
 
-        // Play then immediately pause - this satisfies the "User Gesture" rule
-        mainAudio.play().then(() => mainAudio.pause()).catch(() => {});
-        sfx.play().then(() => sfx.pause()).catch(() => {});
+        // Set volume to 0 immediately as a safety measure
+        mainAudio.volume = 0;
+        sfx.volume = 0;
+        mainAudio.loop = true;
+
+        // Force a "load" call - this is often enough of a "user interaction" 
+        // for Chrome to allow a later .play() without a second click.
+        mainAudio.load();
+        sfx.load();
 
         audioRef.current = mainAudio;
         sfxRef.current = sfx;
@@ -126,8 +127,7 @@ const Page = ({ audioUrl = "/sounds/main.mp3" }: any) => {
         setStatus("requesting");
 
         try {
-            // --- STEP 2: CAMERA PERMISSION ---
-            // The code stops here while the user sees the mobile "Allow" popup.
+            // Request camera (Browser pauses JS here for the popup)
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             stream.getTracks().forEach((track) => track.stop());
             
@@ -152,22 +152,22 @@ const Page = ({ audioUrl = "/sounds/main.mp3" }: any) => {
             });
 
         const loadAll = async () => {
-            // Wait for A-Frame scripts to load
             await loadScript("https://aframe.io/releases/1.3.0/aframe.min.js");
             await loadScript("https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js");
             await loadScript("https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js");
             
-            // --- STEP 3: PLAY SOUND ONLY WHEN AVATAR APPEARS ---
-            // Now that camera is allowed and scripts are ready:
+            // --- TRIGGER SOUND ONLY NOW ---
+            // Scripts are done, Camera is allowed, Avatar is about to appear.
             if (audioRef.current) {
-                audioRef.current.currentTime = 0;
                 audioRef.current.volume = 1.0;
-                audioRef.current.play().catch(e => console.log("Play failed", e));
+                audioRef.current.play().catch(() => {
+                    // Fallback: If Chrome still blocks it, we wait for one more touch
+                    window.addEventListener('click', () => audioRef.current?.play(), { once: true });
+                });
             }
             if (sfxRef.current) {
-                sfxRef.current.currentTime = 0;
                 sfxRef.current.volume = 0.9;
-                sfxRef.current.play().catch(e => console.log("SFX failed", e));
+                sfxRef.current.play().catch(() => {});
             }
 
             setAvatarPos({ x: 0, y: -0.1, z: -2 });
@@ -187,7 +187,7 @@ const Page = ({ audioUrl = "/sounds/main.mp3" }: any) => {
                     onClick={handleStart}
                     className="px-10 py-4 bg-pink-600 hover:bg-pink-500 rounded-full font-bold transition-all shadow-lg"
                 >
-                    {status === "requesting" ? "Requesting Camera..." : "START EXPERIENCE"}
+                    {status === "requesting" ? "Starting..." : "START EXPERIENCE"}
                 </button>
             </div>
         );
