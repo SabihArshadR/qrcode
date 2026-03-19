@@ -279,27 +279,32 @@ const Page = ({ audioUrl = "/sounds/main.mp3" }: any) => {
     const [isPlayingState, setIsPlayingState] = useState(false);
     
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const sfxRef = useRef<HTMLAudioElement | null>(null);
 
     const handleStart = async () => {
+        // 1. Create and "Unlock" audio immediately on click with volume 0
+        const mainAudio = new Audio(audioUrl);
+        mainAudio.volume = 0;
+        mainAudio.loop = true;
+        
+        const sfx = new Audio("/sounds/1.mp3");
+        sfx.volume = 0;
+
+        // Chrome now sees the user "started" the audio
+        mainAudio.play().catch(() => {});
+        sfx.play().catch(() => {});
+
+        audioRef.current = mainAudio;
+        sfxRef.current = sfx;
+        
         setStatus("requesting");
+
         try {
-            // Request camera only
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
             stream.getTracks().forEach((track) => track.stop());
             
-            // Audio starts immediately because of this click
-            if (audioUrl) {
-                audioRef.current = new Audio(audioUrl);
-                audioRef.current.play().catch(() => {});
-                setIsPlayingState(true);
-            }
-
-            const sfx = new Audio("/sounds/1.mp3");
-            sfx.volume = 0.9;
-            sfx.play().catch(() => {});
-
             setStatus("ready");
-            setAvatarPos({ x: 0, y: -0.1, z: -2 });
+            // Note: We don't set avatarPos or volume yet, wait for scripts
         } catch (err) {
             alert("Camera access is required for AR.");
             setStatus("idle");
@@ -322,6 +327,19 @@ const Page = ({ audioUrl = "/sounds/main.mp3" }: any) => {
             await loadScript("https://aframe.io/releases/1.3.0/aframe.min.js");
             await loadScript("https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js");
             await loadScript("https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js");
+            
+            // --- TRIGGER APPEARANCE AND SOUND HERE ---
+            if (audioRef.current) {
+                audioRef.current.volume = 1.0;
+                audioRef.current.currentTime = 0; // Restart from beginning
+            }
+            if (sfxRef.current) {
+                sfxRef.current.volume = 0.9;
+                sfxRef.current.currentTime = 0;
+            }
+
+            setAvatarPos({ x: 0, y: -0.1, z: -2 });
+            setIsPlayingState(true);
             setScriptsLoaded(true);
         };
 
@@ -344,46 +362,26 @@ const Page = ({ audioUrl = "/sounds/main.mp3" }: any) => {
     }
 
     return (
-        // <div className="w-full h-screen relative overflow-hidden">
-        //     <AScene
-        //         embedded
-        //         vr-mode-ui="enabled: false"
-        //         arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
-        //         renderer="antialias: true; alpha: true;"
-        //     >
-        //         <AEntity light="type: ambient; intensity: 1.6" />
-        //         <AEntity light="type: directional; intensity: 1.5" position="0 5 5" />
-        //         <AEntity camera="" />
+        <div className="w-full h-screen relative overflow-hidden">
+            <AScene
+                embedded
+                device-orientation-permission-ui="enabled: false" 
+                vr-mode-ui="enabled: false"
+                arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
+                renderer="antialias: true; alpha: true;"
+            >
+                <AEntity light="type: ambient; intensity: 1.6" />
+                <AEntity light="type: directional; intensity: 1.5" position="0 5 5" />
+                <AEntity camera="active: true" look-controls="enabled: false" />
 
-        //         {avatarPos && (
-        //             <>
-        //                 <Avatar position={avatarPos} isPlaying={isPlayingState} />
-        //                 <Confetti position={avatarPos} />
-        //             </>
-        //         )}
-        //     </AScene>
-        // </div>
-
-         <div className="w-full h-screen relative overflow-hidden">
-        <AScene
-            embedded
-            device-orientation-permission-ui="enabled: false" 
-            vr-mode-ui="enabled: false"
-            arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
-            renderer="antialias: true; alpha: true;"
-        >
-            <AEntity light="type: ambient; intensity: 1.6" />
-            <AEntity light="type: directional; intensity: 1.5" position="0 5 5" />
-            <AEntity camera="active: true" look-controls="enabled: false" />
-
-            {avatarPos && (
-                <>
-                    <Avatar position={avatarPos} isPlaying={isPlayingState} />
-                    <Confetti position={avatarPos} />
-                </>
-            )}
-        </AScene>
-    </div>
+                {avatarPos && (
+                    <>
+                        <Avatar position={avatarPos} isPlaying={isPlayingState} />
+                        <Confetti position={avatarPos} />
+                    </>
+                )}
+            </AScene>
+        </div>
     );
 };
 
