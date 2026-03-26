@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import React, { useEffect, useState, useRef } from "react";
 
 const AScene = (props: any) => React.createElement("a-scene", props);
@@ -104,6 +105,7 @@ const Page = ({ audioUrl = "/sounds/main.mp3" }: any) => {
     
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const sfxRef = useRef<HTMLAudioElement | null>(null);
+    const t = useTranslations("AR");
 
     const handleStart = async () => {
         // --- THE FIX: PREPARE BUT DON'T PLAY ---
@@ -181,13 +183,13 @@ const Page = ({ audioUrl = "/sounds/main.mp3" }: any) => {
     if (status !== "ready" || !scriptsLoaded) {
         return (
             <div className="flex h-screen flex-col items-center justify-center bg-black text-white p-6 text-center">
-                <h1 className="text-2xl font-bold mb-4">AR Experience</h1>
-                <p className="mb-8 opacity-80">Click below to enable camera and see the Avatar</p>
+                <h1 className="text-2xl font-bold mb-4">{t("text1")}</h1>
+                <p className="mb-8 opacity-80">{t("text2")}</p>
                 <button
                     onClick={handleStart}
                     className="px-10 py-4 bg-pink-600 hover:bg-pink-500 rounded-full font-bold transition-all shadow-lg"
                 >
-                    {status === "requesting" ? "Starting..." : "START EXPERIENCE"}
+                    {status === "requesting" ? t("button2") : t("button1")}
                 </button>
             </div>
         );
